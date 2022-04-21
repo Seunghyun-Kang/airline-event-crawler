@@ -43,7 +43,7 @@ class EventCrawler:
                     header = event.find_element(by=By.CLASS_NAME, value='event-banner__text').get_attribute('innerText')
                     content = event.find_element(by=By.CLASS_NAME, value='event-banner__title').get_attribute('innerText')
                     date = event.find_element(by=By.CLASS_NAME, value='event-banner__date').get_attribute('innerText')
-                    new_df = [(airline, url, header, date, content)]
+                    new_df = [(airline, url, date, header, content)]
                     dfNew = pd.DataFrame(new_df, columns=['airline', 'url', 'date',  'header','content'])
                     df = pd.concat([df,dfNew])
                 print(df)
@@ -52,25 +52,54 @@ class EventCrawler:
         elif "airbusan" in self.driver.current_url:
             print("This is AirBusan events :")
             tag = "jejuair"
-            event_list = self.driver.find_elements(by=By.TAG_NAME, value='li')
+            event_list = self.driver.find_elements(by=By.XPATH, value="//ul[@id='nav_2']//li//a")
             print(f"Find {len(event_list)} lists of event")
 
             if event_list != None:
                 df = pd.DataFrame(columns=['airline', 'url', 'date',  'header','content'])    
                 for event in event_list:
                     airline = tag
-                    url = event.find_element(by=By.XPATH, value="//ul[@id='nav_2']//a").get_attribute('href')
-                    header = event.find_element(by=By.XPATH, value="//ul[@id='nav_2']//strong").get_attribute('innerText')
-                    content = event.find_element(by=By.XPATH, value="//ul[@id='nav_2']//strong").get_attribute('innerText')
-                    date = event.find_element(by=By.XPATH, value="//ul[@id='nav_2']//span").get_attribute('innerText')
-                    new_df = [(airline, url, header, date, content)]
+                    url = event.get_attribute('href')
+                    header = event.find_element(by=By.TAG_NAME, value="strong").get_attribute('innerText')
+                    content = event.find_element(by=By.TAG_NAME, value="strong").get_attribute('innerText')
+                    date = event.find_element(by=By.TAG_NAME, value="span").get_attribute('innerText')
+                    new_df = [(airline, url, date, header, content)]
                     dfNew = pd.DataFrame(new_df, columns=['airline', 'url', 'date',  'header','content'])
                     df = pd.concat([df,dfNew])
                 print(df)
             else:
                 return
+        elif "twayair" in self.driver.current_url:
+            print("This is Tway events :")
+            tag = "tway"
+            time.sleep(3)
+            page_buttons = self.driver.find_elements(by=By.XPATH, value="//article//a[@class='num']")
+            page_num = len(page_buttons) + 1
+            print(f"Total page in Tway event site : {page_num}")
+            
+            df = pd.DataFrame(columns=['airline', 'url', 'date',  'header','content']) 
+            for page in range(page_num):
+                self.driver.get(url = f"https://twayair.com/app/promotion/event/being?page={page}")
+                event_list = self.driver.find_elements(by=By.XPATH, value="//ul[@class='evt_list']//li//a")
+                print(f"Find {len(event_list)} lists of event in page {page}")
+                
+                if event_list != None:   
+                    for event in event_list:
+                        airline = tag
+                        code = event.get_attribute('href').split('\'')[1]
+                        url = "https://twayair.com/app/promotion/event/retrieve/($code))/being/n?".replace('($code)',code)
+                        header = event.find_element(by=By.TAG_NAME, value="strong").get_attribute('innerText')
+                        content = event.find_element(by=By.CLASS_NAME, value="sbj_sub").get_attribute('innerText')
+                        date = event.find_elements(by=By.TAG_NAME, value="p")[1].get_attribute('innerText')
+                        new_df = [(airline, url, date, header, content)]
+                        dfNew = pd.DataFrame(new_df, columns=['airline', 'url', 'date',  'header','content'])
+                        df = pd.concat([df,dfNew])
+                    print(df)
+                else:
+                    return
 
 
 #TEST
 # a= EventCrawler("https://www.jejuair.net/ko/event/event.do").getEventList()
-a= EventCrawler("https://www.airbusan.com/content/common/flynjoy/flyNEvent/").getEventList()
+# a= EventCrawler("https://www.airbusan.com/content/common/flynjoy/flyNEvent/").getEventList()
+# a= EventCrawler("https://twayair.com/app/promotion/event/being?").getEventList()
