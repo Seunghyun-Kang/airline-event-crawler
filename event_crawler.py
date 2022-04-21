@@ -51,6 +51,26 @@ class EventCrawler:
                 return
         elif "airbusan" in self.driver.current_url:
             print("This is AirBusan events :")
+            tag = "jejuair"
+            event_list = self.driver.find_elements(by=By.TAG_NAME, value='li')
+            print(f"Find {len(event_list)} lists of event")
+
+            if event_list != None:
+                df = pd.DataFrame(columns=['airline', 'url', 'date',  'header','content'])    
+                for event in event_list:
+                    airline = tag
+                    url = event.find_element(by=By.XPATH, value="//ul[@id='nav_2']//a").get_attribute('href')
+                    header = event.find_element(by=By.XPATH, value="//ul[@id='nav_2']//strong").get_attribute('innerText')
+                    content = event.find_element(by=By.XPATH, value="//ul[@id='nav_2']//strong").get_attribute('innerText')
+                    date = event.find_element(by=By.XPATH, value="//ul[@id='nav_2']//span").get_attribute('innerText')
+                    new_df = [(airline, url, header, date, content)]
+                    dfNew = pd.DataFrame(new_df, columns=['airline', 'url', 'date',  'header','content'])
+                    df = pd.concat([df,dfNew])
+                print(df)
+            else:
+                return
+
 
 #TEST
-a= EventCrawler("https://www.jejuair.net/ko/event/event.do").getEventList()
+# a= EventCrawler("https://www.jejuair.net/ko/event/event.do").getEventList()
+a= EventCrawler("https://www.airbusan.com/content/common/flynjoy/flyNEvent/").getEventList()
