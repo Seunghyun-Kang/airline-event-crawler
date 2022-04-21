@@ -4,6 +4,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
@@ -13,9 +14,15 @@ import pandas as pd
 
 class EventCrawler:
     def __init__(self, url):
+        options = Options()
+        user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.517 Safari/537.36'
+        options.add_argument('user-agent={0}'.format(user_agent))
+
         #location of chromedriver
-        self.driver = webdriver.Chrome('/Users/seun9.kang/Downloads/chromedriver')
+        self.driver = webdriver.Chrome('/Users/seun9.kang/Downloads/chromedriver',options=options)
         self.driver.get(url = url)
+
+        self.driver.delete_all_cookies()
 
     def __del__(self):
         self.driver.close()
@@ -125,10 +132,39 @@ class EventCrawler:
                     print(df)
                 else:
                     return
-
+        elif "jinair" in self.driver.current_url:
+            print("This is Jinair events :")
+            tag = "jinair"
+            time.sleep(2)
+            try:
+                button = self.driver.find_element(by=By.XPATH, value="//fieldset//button")
+                if(button):
+                    print("Button Exist")
+                    self.driver.execute_script("arguments[0].click();", button)
+            except:
+                print("Error")
+                
+            time.sleep(3)
+            df = pd.DataFrame(columns=['airline', 'url', 'date',  'header','content']) 
+            event_list = self.driver.find_elements(by=By.XPATH, value="//ul[@class='eventList']//li//a")
+                
+            if event_list != None:   
+                for event in event_list:
+                    airline = tag
+                    code = event.get_attribute('href')
+                    header = event.find_element(by=By.CLASS_NAME, value="tit").get_attribute('innerText')
+                    content = event.find_element(by=By.CLASS_NAME, value="tit").get_attribute('innerText')
+                    date = event.find_element(by=By.CLASS_NAME, value="date").get_attribute('innerText')
+                    new_df = [(tag, code, date, header, content)]
+                    dfNew = pd.DataFrame(new_df, columns=['airline', 'url', 'date',  'header','content'])
+                    df = pd.concat([df,dfNew])
+                print(df)
+            else:
+                return
 
 #TEST
 # a= EventCrawler("https://www.jejuair.net/ko/event/event.do").getEventList()
 # a= EventCrawler("https://www.airbusan.com/content/common/flynjoy/flyNEvent/").getEventList()
 # a= EventCrawler("https://twayair.com/app/promotion/event/being?").getEventList()
-a= EventCrawler("https://flyairseoul.com/CW/ko/ingEvent.do").getEventList()
+# a= EventCrawler("https://flyairseoul.com/CW/ko/ingEvent.do").getEventList()
+# a= EventCrawler("https://www.jinair.com/promotion/nowLeave").getEventList()
