@@ -13,14 +13,26 @@ import time
 import pandas as pd
 
 class EventCrawler:
-    def __init__(self, url):
+    def __init__(self, tag):
+        self.tag = tag
+        if tag == "jejuair":
+            self.url = "https://www.jejuair.net/ko/event/event.do"
+        elif tag == "airbusan":
+            self.url = "https://www.airbusan.com/content/common/flynjoy/flyNEvent/"
+        elif tag == "tway":
+            self.url = "https://twayair.com/app/promotion/event/being?"
+        elif tag == "airseoul":
+            self.url = "https://flyairseoul.com/CW/ko/ingEvent.do"
+        elif tag == "jinair":
+            self.url = "https://www.jinair.com/promotion/nowLeave"
+
         options = Options()
         user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.517 Safari/537.36'
         options.add_argument('user-agent={0}'.format(user_agent))
 
         #location of chromedriver
         self.driver = webdriver.Chrome('/Users/seun9.kang/Downloads/chromedriver',options=options)
-        self.driver.get(url = url)
+        self.driver.get(url = self.url)
 
         self.driver.delete_all_cookies()
 
@@ -53,7 +65,7 @@ class EventCrawler:
                     new_df = [(airline, url, date, header, content)]
                     dfNew = pd.DataFrame(new_df, columns=['airline', 'url', 'date',  'header','content'])
                     df = pd.concat([df,dfNew])
-                print(df)
+                return df
             else:
                 return
         elif "airbusan" in self.driver.current_url:
@@ -73,7 +85,7 @@ class EventCrawler:
                     new_df = [(airline, url, date, header, content)]
                     dfNew = pd.DataFrame(new_df, columns=['airline', 'url', 'date',  'header','content'])
                     df = pd.concat([df,dfNew])
-                print(df)
+                return df
             else:
                 return
         elif "twayair" in self.driver.current_url:
@@ -101,7 +113,7 @@ class EventCrawler:
                         new_df = [(airline, url, date, header, content)]
                         dfNew = pd.DataFrame(new_df, columns=['airline', 'url', 'date',  'header','content'])
                         df = pd.concat([df,dfNew])
-                    print(df)
+                    return df
                 else:
                     return
         elif "airseoul" in self.driver.current_url:
@@ -129,7 +141,7 @@ class EventCrawler:
                         new_df = [(airline, url, date, header, content)]
                         dfNew = pd.DataFrame(new_df, columns=['airline', 'url', 'date',  'header','content'])
                         df = pd.concat([df,dfNew])
-                    print(df)
+                    return df
                 else:
                     return
         elif "jinair" in self.driver.current_url:
@@ -158,11 +170,12 @@ class EventCrawler:
                     new_df = [(tag, code, date, header, content)]
                     dfNew = pd.DataFrame(new_df, columns=['airline', 'url', 'date',  'header','content'])
                     df = pd.concat([df,dfNew])
-                print(df)
+                return df
             else:
                 return
 
 #TEST
+# jejuAir = EventCrawler("https://www.jejuair.net/ko/event/event.do")
 # a= EventCrawler("https://www.jejuair.net/ko/event/event.do").getEventList()
 # a= EventCrawler("https://www.airbusan.com/content/common/flynjoy/flyNEvent/").getEventList()
 # a= EventCrawler("https://twayair.com/app/promotion/event/being?").getEventList()
