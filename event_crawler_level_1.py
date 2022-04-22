@@ -12,7 +12,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 import time
 import pandas as pd
 
-class EventCrawler:
+class EventCrawlerLevel1:
     def __init__(self, tag):
         self.tag = tag
         if tag == "jejuair":
@@ -31,7 +31,7 @@ class EventCrawler:
         options.add_argument('user-agent={0}'.format(user_agent))
 
         #location of chromedriver
-        self.driver = webdriver.Chrome('/Users/seun9.kang/Downloads/chromedriver',options=options)
+        self.driver = webdriver.Chrome('C:/Users/kisey/Downloads/chromedriver',options=options)
         self.driver.get(url = self.url)
 
         self.driver.delete_all_cookies()
@@ -39,7 +39,7 @@ class EventCrawler:
     def __del__(self):
         self.driver.close()
 
-    def getEventList(self):
+    def get_data_level_1(self):
         if "jejuair" in self.driver.current_url:
             print("This is JejuAir events :")
             tag = "jejuair"
@@ -65,7 +65,6 @@ class EventCrawler:
                     new_df = [(airline, url, date, header, content)]
                     dfNew = pd.DataFrame(new_df, columns=['airline', 'url', 'date',  'header','content'])
                     df = pd.concat([df,dfNew])
-                return df
             else:
                 return
         elif "airbusan" in self.driver.current_url:
